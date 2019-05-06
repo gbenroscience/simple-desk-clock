@@ -201,10 +201,9 @@ public class ClockHand implements Serializable {
         g.drawLine(leftTip.x, leftTip.y, rightTip.x, rightTip.y);
 
     }
-    
-    
-      public void fill(Graphics g, Clock clockFrame) {
-     Point cen = centralCoords(clockFrame);
+
+    public void fill(Graphics g, Clock clockFrame) {
+        Point cen = centralCoords(clockFrame);
         Point topTip = handTopTipCoords(clockFrame);
         Point leftTip = leftTipCoords(clockFrame);
         Point rightTip = rightTipCoords(clockFrame);
@@ -215,7 +214,7 @@ public class ClockHand implements Serializable {
         g.drawLine(topTip.x, topTip.y, cen.x, cen.y);
         g.drawLine(topTip.x, topTip.y, rightTip.x, rightTip.y);
         g.drawLine(leftTip.x, leftTip.y, rightTip.x, rightTip.y);
-        
+
         Polygon p = new Polygon();
         p.addPoint(leftTip.x, leftTip.y);
         p.addPoint(topTip.x, topTip.y);
@@ -225,7 +224,27 @@ public class ClockHand implements Serializable {
         g.fillPolygon(p);
     }
 
-   
+    private int tellTime() {
+
+        switch (handType) {
+
+            case HOURHAND:
+
+                return getSystemHour();
+            case MINUTEHAND:
+
+                return getSystemMinutes();
+            case SECONDHAND:
+
+                return getSystemSeconds();
+
+            default:
+
+                break;
+
+        }
+        return -1;
+    }
 
     /**
      *

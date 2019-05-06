@@ -145,7 +145,7 @@ public class Clock implements Runnable, Serializable {
             angle += (6 * PI / 180);
         }//end for
 
-        secondsHand = new ClockHand(HandType.SECONDHAND, 0.82 * this.outerCircleAsFractionOfFrameSize, 0, Color.LIGHT_GRAY);
+        secondsHand = new ClockHand(HandType.SECONDHAND, 0.82 * this.outerCircleAsFractionOfFrameSize, 0, Color.RED);
         minuteHand = new ClockHand(HandType.MINUTEHAND, 0.8 * this.outerCircleAsFractionOfFrameSize, 1, Color.WHITE);
         hourHand = new ClockHand(HandType.HOURHAND, 0.6 * this.outerCircleAsFractionOfFrameSize, 2, Color.WHITE);
 

@@ -90,8 +90,11 @@ public class FileOps {
 
         try {
             in = new ObjectInputStream(new FileInputStream(saveFile));
-
-            return (Clock) in.readObject();
+            Clock clock = (Clock) in.readObject();
+            if(clock != null){
+                clock.show();
+            }
+            return clock;
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

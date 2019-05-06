@@ -141,21 +141,40 @@ public class Tick implements Serializable {
 
         return new Point((int) (start.x - len * cos(angle)), start.y + (int) (len * sin(angle)));
     }
-/**
- * 
- * @param g
- * @param clock 
- */
+
+    static transient Font topTextFont;
+    static transient Font bottomTextFont;
+    static transient Font tickTextFont;
+    static transient BasicStroke stroke;
+
+    /**
+     *
+     * @param g
+     * @param clock
+     */
     public void draw(Graphics g, Clock clock) {
+        if (tickTextFont == null) {
+            tickTextFont = new Font("Gothic", Font.BOLD + Font.ITALIC, clock.getTextFontSize());
+        }
+        if (topTextFont == null) {
+            topTextFont = new Font("Times New Roman", Font.BOLD, clock.getTextFontSize());
+        }
+        if (bottomTextFont == null) {
+            bottomTextFont = new Font("Papyrus", Font.PLAIN, clock.getTextFontSize());
+        }
+
         g.setColor(color);
         Point begin = getTickStartPoint(clock);
         Point end = getTickEndPoint(clock);
-        g.setFont(new Font("Gothic", Font.BOLD + Font.ITALIC, clock.getTextFontSize()));
+        g.setFont(tickTextFont);
 
         Graphics2D gg = (Graphics2D) g;
         Stroke stroked = gg.getStroke();
 
-        BasicStroke stroke = new BasicStroke(thickness);
+        if(stroke == null){
+           stroke = new BasicStroke(thickness);    
+        }
+   
 
         gg.setStroke(stroke);
 
@@ -204,7 +223,7 @@ public class Tick implements Serializable {
             g.setColor(Color.DARK_GRAY);
             Point pt = clock.getCenter();
             int dim = clock.getInnerCircleDimension();
-            Font f = new Font("Times New Roman", Font.BOLD, clock.getTextFontSize());
+            Font f = topTextFont;
             String str = "DIGITAL";
             FontMetrics fm = g.getFontMetrics(f);
             int strWid = fm.stringWidth(str);
@@ -215,7 +234,7 @@ public class Tick implements Serializable {
         if (tickVal.equals("6")) {
             Point pt = clock.getCenter();
             int dim = clock.getInnerCircleDimension();
-            Font f = new Font("Papyrus", Font.PLAIN, clock.getTextFontSize());
+            Font f = bottomTextFont;
             String str = "ITIS Solutions";
             FontMetrics fm = g.getFontMetrics(f);
             int strWid = fm.stringWidth(str);

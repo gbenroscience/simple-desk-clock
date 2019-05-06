@@ -40,6 +40,11 @@ public class Clock implements Runnable, Serializable {
     private transient JPanel panel;
     private transient BufferedImage clockImage;
     private transient Thread timer;
+    /**
+     * Object used to draw relative to the center of rectangles instead of
+     * drawing relative to their top left corner.
+     */
+    private transient DrawAdapter adapter;
 
     /**
      * The size of the whole clock
@@ -81,11 +86,6 @@ public class Clock implements Runnable, Serializable {
      */
     private Point center;
 
-    /**
-     * Object used to draw relative to the center of rectangles instead of
-     * drawing relative to their top left corner.
-     */
-    private transient DrawAdapter adapter;
     /**
      * The ticks
      */
@@ -482,8 +482,6 @@ public class Clock implements Runnable, Serializable {
 
             clock.save();
 
-        } else {
-            clock.show();
         }
 
     }

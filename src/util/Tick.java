@@ -243,6 +243,7 @@ public class Tick implements Serializable {
 
             g.drawString(str, (clock.getDiameter() - strWid) / 2, pt.y + dim / 4);
         }
+        
     }
 
     public double oneDegInRads() {

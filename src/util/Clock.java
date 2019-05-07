@@ -391,6 +391,8 @@ public class Clock implements Runnable, Serializable {
         secondsHand.getAngleForEachState();
         minuteHand.getAngleForEachState();
         hourHand.getAngleForEachState();
+        
+        g.dispose();
 
     }
 

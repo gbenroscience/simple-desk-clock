@@ -44,14 +44,12 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import ui.ClockSettings;
 
-
 /**
  *
  * @author JIBOYE, Oluwagbemiro Olaoluwa <gbenroscience@yahoo.com>
  */
 public class Clock implements Runnable, Serializable {
 
-    
     public static final int ALARM_DURATION_IN_MINUTES = 5;
     /**
      * If true, the settings page is open.
@@ -190,7 +188,7 @@ public class Clock implements Runnable, Serializable {
             }
 
         };
-
+        settingsOpened = new AtomicBoolean(false);
         panel.setSize(diameter, diameter);
         panel.setBackground(new Color(0, 0, 0, 0));
         panel.setOpaque(false);
@@ -479,10 +477,9 @@ public class Clock implements Runnable, Serializable {
         }
 
     }//end method run.
-    
-    
-    private void fireAlarm(){
-        
+
+    private void fireAlarm() {
+
         Calendar c = Calendar.getInstance();
         alarms.forEach((alarm) -> {
             int hour = c.get(Calendar.HOUR_OF_DAY);
@@ -494,8 +491,7 @@ public class Clock implements Runnable, Serializable {
                 }
             }
         });
-        
-        
+
     }
 
     private void applyLookAndFeel() {
@@ -534,16 +530,15 @@ public class Clock implements Runnable, Serializable {
     }
 
     public void play(String fileName) {
-         
-        try { 
-            
+
+        try {
+
             AudioFilePlayer afp = new AudioFilePlayer();
-            afp.playFromStream(new BufferedInputStream(getClass().getClassLoader().getResourceAsStream(fileName))); 
+            afp.playFromStream(new BufferedInputStream(getClass().getClassLoader().getResourceAsStream(fileName)));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        
-     
+
     }
 
     public static void main(String[] args) {
@@ -562,8 +557,6 @@ public class Clock implements Runnable, Serializable {
             clock.save();
 
         }
-            
-           
 
     }
 

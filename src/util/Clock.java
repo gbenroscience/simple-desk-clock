@@ -26,9 +26,15 @@ import javax.swing.JPanel;
 import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JWindow;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import ui.ClockSettings;
 
 /**
@@ -150,6 +156,8 @@ public class Clock implements Runnable, Serializable {
         hourHand = new ClockHand(HandType.HOURHAND, 0.6 * this.outerCircleAsFractionOfFrameSize, 2, Color.WHITE);
 
         show();
+        
+ 
 
     }
 
@@ -171,6 +179,8 @@ public class Clock implements Runnable, Serializable {
         panel.setBackground(new Color(0, 0, 0, 0));
         panel.setOpaque(false);
 
+        
+        applyLookAndFeel();
         panel.addMouseListener(new MouseAdapter() {
             private long clickStartDate;
 
@@ -207,16 +217,17 @@ public class Clock implements Runnable, Serializable {
                 }
 
                 if (clicks.size() == 2) {
-                    int choice = JOptionPane.showConfirmDialog(null, "Choose `Yes` to open Settings\n, Choose `No` to exit this APP,"
-                            + " and Choose `Cancel` to continue using this app.", "", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+                        JWindow window = (JWindow) panel.getTopLevelAncestor();
+                        JFrame f = new JFrame();f.setAlwaysOnTop(true);
+                    int choice = JOptionPane.showConfirmDialog(f, "Choose `Yes` to open Settings\n, Choose `No` to exit this APP,"
+                            + " and Choose `Cancel` to continue using this app.", "OPTIONS", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
 
                     switch (choice) {
 
                         case JOptionPane.YES_OPTION:
                             openSettings();
                             break;
-                        case JOptionPane.NO_OPTION:
-                            JWindow window = (JWindow) panel.getTopLevelAncestor();
+                        case JOptionPane.NO_OPTION: 
                             window.dispose();
                             Runtime.getRuntime().exit(0);
                             break;
@@ -448,6 +459,14 @@ public class Clock implements Runnable, Serializable {
         }
 
     }//end method run.
+    
+    private void applyLookAndFeel(){
+        try {
+            UIManager.setLookAndFeel(new NimbusLookAndFeel());
+        } catch (UnsupportedLookAndFeelException ex) {
+            Logger.getLogger(ClockSettings.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
 
     public void openSettings() {
         ClockSettings settings = new ClockSettings(this);

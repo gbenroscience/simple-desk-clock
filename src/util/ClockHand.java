@@ -253,8 +253,12 @@ public class ClockHand implements Serializable {
     private int getSystemSeconds() {
 
         Calendar dateTime = Calendar.getInstance();
+        
+        int second = dateTime.get(Calendar.SECOND);
+        
+        
 
-        return dateTime.get(Calendar.SECOND);
+        return second < 59 ? second+1 : 0;
     }
 
     /**

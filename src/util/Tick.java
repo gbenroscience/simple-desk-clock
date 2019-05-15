@@ -15,12 +15,25 @@ import java.awt.Stroke;
 import java.io.Serializable;
 import java.util.Random;
 import static java.lang.Math.*;
+import java.security.SecureRandom;
 
 /**
  *
  * @author Gbemiro Jiboye
  */
 public class Tick implements Serializable {
+    
+    static final SecureRandom choiceMaker;
+    
+    static final DynamicBaseText DYNAMIC_BASE_TEXT;
+    
+    static {
+         Random r = new Random(System.currentTimeMillis());
+        byte b[] = new byte[8];
+        r.nextBytes(b);
+        choiceMaker = new SecureRandom(b);
+        DYNAMIC_BASE_TEXT = new DynamicBaseText(DynamicBaseText.SHOW_MAIN);
+    }
 
     /**
      * The fraction of the line that will be displayed
@@ -171,10 +184,9 @@ public class Tick implements Serializable {
         Graphics2D gg = (Graphics2D) g;
         Stroke stroked = gg.getStroke();
 
-        if(stroke == null){
-           stroke = new BasicStroke(thickness);    
+        if (stroke == null) {
+            stroke = new BasicStroke(thickness);
         }
-   
 
         gg.setStroke(stroke);
 
@@ -235,15 +247,15 @@ public class Tick implements Serializable {
             Point pt = clock.getCenter();
             int dim = clock.getInnerCircleDimension();
             Font f = bottomTextFont;
-            String str = "ITIS Solutions";
+            String str = DYNAMIC_BASE_TEXT.control();
             FontMetrics fm = g.getFontMetrics(f);
             int strWid = fm.stringWidth(str);
             g.setFont(f);
-            g.setColor(new Color(153, 153, new Random().nextInt(256)));
+            g.setColor(new Color(153, 153, choiceMaker.nextInt(256)));
 
             g.drawString(str, (clock.getDiameter() - strWid) / 2, pt.y + dim / 4);
         }
-        
+
     }
 
     public double oneDegInRads() {
@@ -293,6 +305,73 @@ public class Tick implements Serializable {
             return "4";
         } else {
             return "";
+        }
+
+    }
+
+    static class DynamicBaseText {
+
+        private static final String mainText = "ITIS Solutions";
+
+        private String[] textGroup = new String[]{"Double Click", "For More Options"};
+
+        private static final int SHOW_MAIN = 1;
+        private static final int SHOW_FIRST = 2;
+        private static final int SHOW_SECOND = 3;
+
+        private int state = SHOW_MAIN;
+
+        private int counter;
+
+        public DynamicBaseText(int state) {
+            this.state = state;
+        }
+
+        public String control() {
+            
+            final int countDelayForMainText = 12 + choiceMaker.nextInt(5);
+            final int countDelayForOtherText = 2;
+            
+
+            switch (state) {
+
+                case SHOW_MAIN:
+
+                    if (counter < countDelayForMainText) {
+                        ++counter;
+
+                        return mainText;
+                    } else {
+                        counter = 0;
+                        state = SHOW_FIRST;
+                        return textGroup[0];
+                    }
+
+                case SHOW_FIRST:
+                    if (counter < countDelayForOtherText) {
+                        ++counter;
+
+                        return textGroup[0];
+                    } else {
+                        counter = 0;
+                        state = SHOW_SECOND;
+                        return textGroup[1];
+                    }
+                case SHOW_SECOND:
+                    if (counter < countDelayForOtherText) {
+                        ++counter;
+
+                        return textGroup[1];
+                    } else {
+                        counter = 0;
+                        state = SHOW_MAIN;
+                        return mainText;
+                    }
+                 default:
+                     
+                     return mainText;
+            }
+
         }
 
     }

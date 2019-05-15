@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 package util;
- 
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -24,11 +24,18 @@ import static java.lang.Math.PI;
 import javax.swing.JPanel;
 
 import java.awt.geom.Ellipse2D;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.jar.JarInputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JWindow;
@@ -37,11 +44,20 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import ui.ClockSettings;
 
+
 /**
  *
  * @author JIBOYE, Oluwagbemiro Olaoluwa <gbenroscience@yahoo.com>
  */
 public class Clock implements Runnable, Serializable {
+
+    
+    public static final int ALARM_DURATION_IN_MINUTES = 5;
+    /**
+     * If true, the settings page is open.
+     */
+    private transient AtomicBoolean settingsOpened = new AtomicBoolean(false);
+    private final ArrayList<Alarm> alarms = new ArrayList();
 
     private transient JPanel panel;
     private transient BufferedImage clockImage;
@@ -113,6 +129,8 @@ public class Clock implements Runnable, Serializable {
 
     static final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 
+    private static final long REFRESH_RATE = 700L;
+
     // private Dimension size;
     /**
      *
@@ -156,8 +174,6 @@ public class Clock implements Runnable, Serializable {
         hourHand = new ClockHand(HandType.HOURHAND, 0.6 * this.outerCircleAsFractionOfFrameSize, 2, Color.WHITE);
 
         show();
-        
- 
 
     }
 
@@ -179,7 +195,6 @@ public class Clock implements Runnable, Serializable {
         panel.setBackground(new Color(0, 0, 0, 0));
         panel.setOpaque(false);
 
-        
         applyLookAndFeel();
         panel.addMouseListener(new MouseAdapter() {
             private long clickStartDate;
@@ -217,17 +232,18 @@ public class Clock implements Runnable, Serializable {
                 }
 
                 if (clicks.size() == 2) {
-                        JWindow window = (JWindow) panel.getTopLevelAncestor();
-                        JFrame f = new JFrame();f.setAlwaysOnTop(true);
-                    int choice = JOptionPane.showConfirmDialog(f, "Choose `Yes` to open Settings\n, Choose `No` to exit this APP,"
-                            + " and Choose `Cancel` to continue using this app.", "OPTIONS", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+                    JWindow window = (JWindow) panel.getTopLevelAncestor();
+                    JFrame f = new JFrame();
+                    f.setAlwaysOnTop(true);
+                    int choice = JOptionPane.showConfirmDialog(f, "1. Choose `Yes` to open Settings\n2. Choose `No` to exit this APP\n"
+                            + "3. Choose `Cancel` to continue using this app.", "OPTIONS", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
 
                     switch (choice) {
 
                         case JOptionPane.YES_OPTION:
                             openSettings();
                             break;
-                        case JOptionPane.NO_OPTION: 
+                        case JOptionPane.NO_OPTION:
                             window.dispose();
                             Runtime.getRuntime().exit(0);
                             break;
@@ -368,6 +384,10 @@ public class Clock implements Runnable, Serializable {
         return (int) (innerCircleAsFractionOfFrameSize * diameter);
     }
 
+    public ArrayList<Alarm> getAlarms() {
+        return alarms;
+    }
+
     public void draw() {
 
         if (clockImage == null) {
@@ -402,13 +422,12 @@ public class Clock implements Runnable, Serializable {
         secondsHand.getAngleForEachState();
         minuteHand.getAngleForEachState();
         hourHand.getAngleForEachState();
-        
 
     }
 
     public void repaint(JPanel panel) {
         draw();
-        panel.repaint(); 
+        panel.repaint();
     }
 
     public void show() {
@@ -452,39 +471,79 @@ public class Clock implements Runnable, Serializable {
 
         while (true) {
             try {
-                timer.sleep(700);
+                timer.sleep(REFRESH_RATE);
                 panel.repaint();
+                fireAlarm();
             } catch (InterruptedException e) {
             }
         }
 
     }//end method run.
     
-    private void applyLookAndFeel(){
+    
+    private void fireAlarm(){
+        
+        Calendar c = Calendar.getInstance();
+        alarms.forEach((alarm) -> {
+            int hour = c.get(Calendar.HOUR_OF_DAY);
+            int min = c.get(Calendar.MINUTE);
+            int sec = c.get(Calendar.SECOND);
+            if (hour == alarm.getHh()) {
+                if ((min - alarm.getMm()) <= ALARM_DURATION_IN_MINUTES) {
+                    play("heal8.ogg");
+                }
+            }
+        });
+        
+        
+    }
+
+    private void applyLookAndFeel() {
         try {
             UIManager.setLookAndFeel(new NimbusLookAndFeel());
         } catch (UnsupportedLookAndFeelException ex) {
-            Logger.getLogger(ClockSettings.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Clock.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     public void openSettings() {
-        ClockSettings settings = new ClockSettings(this);
-        settings.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        settings.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                super.windowClosing(e); //To change body of generated methods, choose Tools | Templates.
+        if (!settingsOpened.get()) {
+            ClockSettings settings = new ClockSettings(this);
+            settings.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+            settings.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    super.windowClosing(e); //To change body of generated methods, choose Tools | Templates.
 
-                FileOps fileOps = new FileOps();
-                fileOps.write(Clock.this);
-            }
+                    FileOps fileOps = new FileOps();
+                    fileOps.write(Clock.this);
+                    settingsOpened.set(false);
+                }
 
-        });
-        settings.setVisible(true);
-        settings.setSize(426, 440);
-        settings.setResizable(false);
+            });
+            settings.setVisible(true);
+            settings.setSize(550, 600);
+            settings.setResizable(false);
+            settingsOpened.set(true);
+        } else {
+            JFrame f = new JFrame();
+            f.setAlwaysOnTop(true);
+            JOptionPane.showMessageDialog(f, "Oops, looks like the Settings page has been opened already.");
+        }
 
+    }
+
+    public void play(String fileName) {
+         
+        try { 
+            
+            AudioFilePlayer afp = new AudioFilePlayer();
+            afp.playFromStream(new BufferedInputStream(getClass().getClassLoader().getResourceAsStream(fileName))); 
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        
+     
     }
 
     public static void main(String[] args) {
@@ -503,6 +562,8 @@ public class Clock implements Runnable, Serializable {
             clock.save();
 
         }
+            
+           
 
     }
 

@@ -50,7 +50,7 @@ import ui.ClockSettings;
  */
 public class Clock implements Runnable, Serializable {
 
-    public static final int ALARM_DURATION_IN_MINUTES = 5;
+    public static final int ALARM_DURATION_IN_MINUTES = 1;
     /**
      * If true, the settings page is open.
      */
@@ -480,16 +480,25 @@ public class Clock implements Runnable, Serializable {
 
     private void fireAlarm() {
 
-        Calendar c = Calendar.getInstance();
+        Calendar now = Calendar.getInstance();
+         
+           
+            int millis = ALARM_DURATION_IN_MINUTES * 60*1000;
+            
+            
         alarms.forEach((alarm) -> {
-            int hour = c.get(Calendar.HOUR_OF_DAY);
-            int min = c.get(Calendar.MINUTE);
-            int sec = c.get(Calendar.SECOND);
-            if (hour == alarm.getHh()) {
-                if ((min - alarm.getMm()) <= ALARM_DURATION_IN_MINUTES) {
-                    play("heal8.ogg");
-                }
-            }
+            
+             GregorianCalendar alarmTime = new GregorianCalendar(now.get(Calendar.YEAR),now.get(Calendar.MONTH),now.get(Calendar.DAY_OF_MONTH),
+                    alarm.getHh(), alarm.getMm(), alarm.getSec());
+            
+      long millisDiff = now.getTimeInMillis() - alarmTime.getTimeInMillis();
+      
+      if(millisDiff >= 0 ){
+         if ( millisDiff <= millis) {
+                   play("heal8.ogg");
+             }  
+      }
+           
         });
 
     }

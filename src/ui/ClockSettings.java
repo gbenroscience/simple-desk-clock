@@ -13,6 +13,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.InputMismatchException;
 import java.util.Random;
 import java.util.logging.Level;
@@ -36,8 +39,6 @@ import util.Tick;
  * @author JIBOYE, Oluwagbemiro Olaoluwa <gbenroscience@yahoo.com>
  */
 public class ClockSettings extends javax.swing.JFrame {
-    
-    
 
     Clock clockFrame;
     /**
@@ -79,10 +80,9 @@ public class ClockSettings extends javax.swing.JFrame {
         clockHandLengthSpinner.setModel(new SpinnerNumberModel(0.9, 0.0, 1.0, 0.01));
 
         clockCircleWidthSpinner.setModel(new SpinnerNumberModel(clock.getOuterCircleAsFractionOfFrameSize(), 0, 1.0, 0.01));
-        
-        
+
         clockWidthSpinner.setModel(new SpinnerNumberModel(clock.getDiameter(), 0, Toolkit.getDefaultToolkit().getScreenSize().width, 1));
-        
+
         clockCircleCombo.removeAllItems();
         clockCircleCombo.addItem("Outer Circle");
         clockCircleCombo.addItem("Inner Circle");
@@ -105,9 +105,12 @@ public class ClockSettings extends javax.swing.JFrame {
 
         clockCircleCombo.setActionCommand(String.valueOf(clockCircleCombo.getSelectedItem()));
 
-        hourSpinner.setModel(new SpinnerNumberModel(12, 1, 23, 1));
-        minuteSpinner.setModel(new SpinnerNumberModel(1, 1, 59, 1));
-        secondSpinner.setModel(new SpinnerNumberModel(1, 1, 59, 1));
+        GregorianCalendar c = new GregorianCalendar();
+        c.setTimeInMillis(new Date().getTime());
+
+        hourSpinner.setModel(new SpinnerNumberModel(c.get(Calendar.HOUR_OF_DAY), 1, 23, 1));
+        minuteSpinner.setModel(new SpinnerNumberModel(c.get(Calendar.MINUTE),    0, 59, 1));
+        secondSpinner.setModel(new SpinnerNumberModel(c.get(Calendar.SECOND),    0, 59, 1));
 
         createAlarm.addActionListener(new ActionListener() {
             @Override
@@ -155,12 +158,12 @@ public class ClockSettings extends javax.swing.JFrame {
                     model.fireTableDataChanged();
 
                     JOptionPane.showMessageDialog(rootPane, "Alarm deleted");
-                    
+
                     clockFrame.save();
                 } else {
                     JOptionPane.showMessageDialog(rootPane, "Alarm not deleted.");
                 }
- 
+
             }
 
         });

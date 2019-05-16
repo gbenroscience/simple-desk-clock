@@ -363,7 +363,7 @@ public class Tick implements Serializable {
             final int countDelayForOtherText = 2;
 
             final int countDelayForAlarmText = 2;
-
+ 
             switch (state) {
 
                 case SHOW_MAIN:
@@ -400,11 +400,13 @@ public class Tick implements Serializable {
                     }
 
                 case SHOW_ALARM_NOTIF:
-
+                    System.out.println("1... SHOW_ALARM_NOTIF");
                     if (counter < alarmTextGroup.size()) {
+                    System.out.println("2.");
                         return alarmTextGroup.get(counter++);
                     } else {
                         counter = 0;
+                    System.out.println("OFF.");
                         return alarmTextGroup.get(counter++);
                     }
 
@@ -416,9 +418,10 @@ public class Tick implements Serializable {
         }
 
         public void scan(Alarm alarm) {
-            setState(SHOW_ALARM_NOTIF);
+            setState(SHOW_ALARM_NOTIF);  
             String message = alarm.getDescription();
             this.alarmTextGroup = new ArrayList<>(Arrays.asList(message.split("\\s")));
+            this.alarmTextGroup.add( alarm.getFriendlyTime() );
         }
 
         public void shutdownAlarmState() {

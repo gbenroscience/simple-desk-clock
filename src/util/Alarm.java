@@ -5,6 +5,7 @@
  */
 package util;
 
+import java.awt.Point;
 import java.io.Serializable;
 import java.util.InputMismatchException;
 import java.util.UUID;
@@ -14,12 +15,25 @@ import java.util.UUID;
  * @author JIBOYE, Oluwagbemiro Olaoluwa <gbenroscience@yahoo.com>
  */
 public class Alarm implements Serializable {
+    
+    private transient Bubble notificationBubble;
 
     private String id;
     private String description;
     private int hh;
     private int mm;
     private int sec;
+    /**
+     * If true, the code has discovered that this Alarm's time has come. So it places the
+     * Alarm in the ringing state. One the code has finished running this ALarm, it sets
+     * this flag to false.
+     * 
+     */
+    private transient boolean nowRunning;
+    /**
+     * The user might decide to disable this alarm.
+     */
+    private boolean userDisabled;
 
     public Alarm() {
     }
@@ -103,6 +117,38 @@ public class Alarm implements Serializable {
         return description;
     }
 
+    public void setNowRunning(boolean nowRunning) {
+        this.nowRunning = nowRunning;
+    }
+
+    public boolean isNowRunning() {
+        return nowRunning;
+    }
+
+    public void setUserDisabled(boolean userDisabled) {
+        this.userDisabled = userDisabled;
+    }
+
+    public boolean isUserDisabled() {
+        return userDisabled;
+    }
+
+    public void setNotificationBubble(Bubble notificationBubble) {
+        this.notificationBubble = notificationBubble;
+    }
+
+    public Bubble getNotificationBubble() {
+        return notificationBubble;
+    }
+    
+    public void initBubble(Clock c){
+        this.notificationBubble = new Bubble( description,  new Point( c.getCenter() )  , 5, 5);
+    }
+
+    
+    
+    
+    
     public String getFriendlyTime() {
         
         String hour = String.valueOf(hh);

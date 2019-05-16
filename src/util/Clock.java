@@ -5,7 +5,6 @@
  */
 package util;
 
-import interfaces.AlarmListener;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -30,6 +29,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -123,8 +124,11 @@ public class Clock implements Runnable, Serializable {
     private Point location;
 
     static final Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+    
+    private transient AlarmMonitor monitor;
 
     private static final long REFRESH_RATE = 700L;
+    private static final long ALARM_REFRESH_RATE = 150L;
 
     // private Dimension size;
     /**
@@ -176,12 +180,25 @@ public class Clock implements Runnable, Serializable {
         if (adapter == null) {
             adapter = new DrawAdapter();
         }
+         monitor = new AlarmMonitor();
         this.panel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Clock.this.draw();
                 g.drawImage(Clock.this.clockImage, 0, 0, Clock.this.diameter, Clock.this.diameter, new Color(255, 255, 255, 0), this);
+
+                for (Alarm alarm : Clock.this.alarms) {
+
+                    if (alarm.isNowRunning()) {
+                        Bubble bubble = alarm.getNotificationBubble();
+                        if(bubble != null){
+                        bubble.draw(Clock.this, (Graphics2D) g);
+                        }
+                    }
+
+                }
+
             }
 
         };
@@ -466,14 +483,46 @@ public class Clock implements Runnable, Serializable {
 
         while (true) {
             try {
-                timer.sleep(REFRESH_RATE);
+                boolean alarmOn = Tick.DYNAMIC_BASE_TEXT.getState() == Tick.DynamicBaseText.SHOW_ALARM_NOTIF;
+                Thread.sleep(alarmOn ? ALARM_REFRESH_RATE : REFRESH_RATE);
                 panel.repaint();
-                fireAlarm();
+                monitor.checkAlarm(this);
             } catch (InterruptedException e) {
             }
         }
 
     }//end method run.
+
+   static class AlarmMonitor {
+
+        private boolean busy;
+
+        public void checkAlarm(Clock clock) {
+
+            synchronized (this) {
+                if (!busy) {
+                    busy = true;
+                    
+                    Timer tt = new Timer();
+                    TimerTask t = new TimerTask() {
+                        @Override
+                        public void run() {
+                            clock.fireAlarm();
+                            tt.cancel();
+                            busy = false;
+                        }
+                    };
+
+
+                    tt.schedule(t, REFRESH_RATE);
+
+                }
+            }
+
+        }
+
+    }
+ 
 
     private void fireAlarm() {
 
@@ -483,28 +532,35 @@ public class Clock implements Runnable, Serializable {
 
         alarms.forEach((alarm) -> {
 
-            GregorianCalendar alarmTime = new GregorianCalendar(now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH),
-                    alarm.getHh(), alarm.getMm(), alarm.getSec());
+            if (!alarm.isUserDisabled()) {
 
-            long millisDiff = now.getTimeInMillis() - alarmTime.getTimeInMillis();
+                GregorianCalendar alarmTime = new GregorianCalendar(now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH),
+                        alarm.getHh(), alarm.getMm(), alarm.getSec());
 
-            if (millisDiff >= 0) {
-                if (millisDiff <= millis) {
-                    play("heal8.ogg");
+                long millisDiff = now.getTimeInMillis() - alarmTime.getTimeInMillis();
 
-                    if (Tick.DYNAMIC_BASE_TEXT.getState() != Tick.DynamicBaseText.SHOW_ALARM_NOTIF) {
-                        Tick.DYNAMIC_BASE_TEXT.scan(alarm);
+                if (millisDiff >= 0) {
+                    if (millisDiff <= millis) {
+                        play("heal8.ogg");
+
+                        if (Tick.DYNAMIC_BASE_TEXT.getState() != Tick.DynamicBaseText.SHOW_ALARM_NOTIF) {
+                            alarm.setNowRunning(true);
+                            alarm.initBubble(this);
+                            Tick.DYNAMIC_BASE_TEXT.scan(alarm);
+                        }
+
+                    } else {
+                        if (alarm.isNowRunning()) {
+                            alarm.setNowRunning(false);
+                            if (Tick.DYNAMIC_BASE_TEXT.getState() == Tick.DynamicBaseText.SHOW_ALARM_NOTIF) {
+                                Tick.DYNAMIC_BASE_TEXT.shutdownAlarmState();
+                            }
+                        }
+
                     }
-
-                } else {
-
-                    if (Tick.DYNAMIC_BASE_TEXT.getState() == Tick.DynamicBaseText.SHOW_ALARM_NOTIF) {
-                        Tick.DYNAMIC_BASE_TEXT.shutdownAlarmState();
-                    }
-
                 }
-            }
 
+            }
         });
 
     }

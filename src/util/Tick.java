@@ -16,19 +16,22 @@ import java.io.Serializable;
 import java.util.Random;
 import static java.lang.Math.*;
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  *
  * @author Gbemiro Jiboye
  */
 public class Tick implements Serializable {
-    
+
     static final SecureRandom choiceMaker;
-    
-    static final DynamicBaseText DYNAMIC_BASE_TEXT;
-    
+
+    public static final DynamicBaseText DYNAMIC_BASE_TEXT;
+
     static {
-         Random r = new Random(System.currentTimeMillis());
+        Random r = new Random(System.currentTimeMillis());
         byte b[] = new byte[8];
         r.nextBytes(b);
         choiceMaker = new SecureRandom(b);
@@ -160,20 +163,33 @@ public class Tick implements Serializable {
     static transient Font tickTextFont;
     static transient BasicStroke stroke;
 
+    static transient int cacheFontSize = 0;
+
     /**
      *
      * @param g
      * @param clock
      */
     public void draw(Graphics g, Clock clock) {
+
+        int fontSz = clock.getTextFontSize();
+
         if (tickTextFont == null) {
-            tickTextFont = new Font("Gothic", Font.BOLD + Font.ITALIC, clock.getTextFontSize());
+            tickTextFont = new Font("Gothic", Font.BOLD + Font.ITALIC, fontSz);
+            cacheFontSize = tickTextFont.getSize();
         }
         if (topTextFont == null) {
-            topTextFont = new Font("Times New Roman", Font.BOLD, clock.getTextFontSize());
+            topTextFont = new Font("Times New Roman", Font.BOLD, fontSz);
         }
         if (bottomTextFont == null) {
-            bottomTextFont = new Font("Papyrus", Font.PLAIN, clock.getTextFontSize());
+            bottomTextFont = new Font("Papyrus", Font.PLAIN, fontSz);
+        }
+
+        if (cacheFontSize != fontSz) {
+            tickTextFont = new Font("Gothic", Font.BOLD + Font.ITALIC, fontSz);
+            topTextFont = new Font("Times New Roman", Font.BOLD, fontSz);
+            bottomTextFont = new Font("Papyrus", Font.PLAIN, fontSz);
+            cacheFontSize = fontSz;
         }
 
         g.setColor(color);
@@ -309,29 +325,44 @@ public class Tick implements Serializable {
 
     }
 
-    static class DynamicBaseText {
+    public static final class DynamicBaseText {
 
         private static final String mainText = "ITIS Solutions";
 
         private String[] textGroup = new String[]{"Double Click", "For More Options"};
 
-        private static final int SHOW_MAIN = 1;
-        private static final int SHOW_FIRST = 2;
-        private static final int SHOW_SECOND = 3;
+        private List<String> alarmTextGroup = new ArrayList<String>();
+
+        public static final int SHOW_MAIN = 1;
+        public static final int SHOW_FIRST = 2;
+        public static final int SHOW_SECOND = 3;
+
+        public static final int SHOW_ALARM_NOTIF = 4;
 
         private int state = SHOW_MAIN;
 
         private int counter;
+ 
 
         public DynamicBaseText(int state) {
             this.state = state;
         }
 
+        public void setState(int state) {
+            this.counter = 0;
+            this.state = state;
+        }
+
+        public int getState() {
+            return state;
+        }
+
         public String control() {
-            
+
             final int countDelayForMainText = 12 + choiceMaker.nextInt(5);
             final int countDelayForOtherText = 2;
-            
+
+            final int countDelayForAlarmText = 2;
 
             switch (state) {
 
@@ -367,11 +398,32 @@ public class Tick implements Serializable {
                         state = SHOW_MAIN;
                         return mainText;
                     }
-                 default:
-                     
-                     return mainText;
+
+                case SHOW_ALARM_NOTIF:
+
+                    if (counter < alarmTextGroup.size()) {
+                        return alarmTextGroup.get(counter++);
+                    } else {
+                        counter = 0;
+                        return alarmTextGroup.get(counter++);
+                    }
+
+                default:
+
+                    return mainText;
             }
 
+        }
+
+        public void scan(Alarm alarm) {
+            setState(SHOW_ALARM_NOTIF);
+            String message = alarm.getDescription();
+            this.alarmTextGroup = new ArrayList<>(Arrays.asList(message.split("\\s")));
+        }
+
+        public void shutdownAlarmState() {
+            setState(SHOW_MAIN);
+            this.alarmTextGroup = new ArrayList<>();
         }
 
     }

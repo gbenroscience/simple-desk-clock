@@ -5,9 +5,8 @@
  */
 package ui;
 
+import interfaces.AlarmListener;
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -18,20 +17,15 @@ import java.util.InputMismatchException;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
 import javax.swing.JColorChooser;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.plaf.nimbus.NimbusLookAndFeel;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableModel;
 import util.Alarm;
 import util.Clock;
@@ -42,6 +36,8 @@ import util.Tick;
  * @author JIBOYE, Oluwagbemiro Olaoluwa <gbenroscience@yahoo.com>
  */
 public class ClockSettings extends javax.swing.JFrame {
+    
+    
 
     Clock clockFrame;
     /**
@@ -83,7 +79,10 @@ public class ClockSettings extends javax.swing.JFrame {
         clockHandLengthSpinner.setModel(new SpinnerNumberModel(0.9, 0.0, 1.0, 0.01));
 
         clockCircleWidthSpinner.setModel(new SpinnerNumberModel(clock.getOuterCircleAsFractionOfFrameSize(), 0, 1.0, 0.01));
-
+        
+        
+        clockWidthSpinner.setModel(new SpinnerNumberModel(clock.getDiameter(), 0, Toolkit.getDefaultToolkit().getScreenSize().width, 1));
+        
         clockCircleCombo.removeAllItems();
         clockCircleCombo.addItem("Outer Circle");
         clockCircleCombo.addItem("Inner Circle");

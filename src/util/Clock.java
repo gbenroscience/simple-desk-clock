@@ -5,6 +5,7 @@
  */
 package util;
 
+import interfaces.AlarmListener;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -25,15 +26,11 @@ import javax.swing.JPanel;
 
 import java.awt.geom.Ellipse2D;
 import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.jar.JarInputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
@@ -481,24 +478,33 @@ public class Clock implements Runnable, Serializable {
     private void fireAlarm() {
 
         Calendar now = Calendar.getInstance();
-         
-           
-            int millis = ALARM_DURATION_IN_MINUTES * 60*1000;
-            
-            
+
+        int millis = ALARM_DURATION_IN_MINUTES * 60 * 1000;
+
         alarms.forEach((alarm) -> {
-            
-             GregorianCalendar alarmTime = new GregorianCalendar(now.get(Calendar.YEAR),now.get(Calendar.MONTH),now.get(Calendar.DAY_OF_MONTH),
+
+            GregorianCalendar alarmTime = new GregorianCalendar(now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH),
                     alarm.getHh(), alarm.getMm(), alarm.getSec());
-            
-      long millisDiff = now.getTimeInMillis() - alarmTime.getTimeInMillis();
-      
-      if(millisDiff >= 0 ){
-         if ( millisDiff <= millis) {
-                   play("heal8.ogg");
-             }  
-      }
-           
+
+            long millisDiff = now.getTimeInMillis() - alarmTime.getTimeInMillis();
+
+            if (millisDiff >= 0) {
+                if (millisDiff <= millis) {
+                    play("heal8.ogg");
+
+                    if (Tick.DYNAMIC_BASE_TEXT.getState() != Tick.DynamicBaseText.SHOW_ALARM_NOTIF) {
+                        Tick.DYNAMIC_BASE_TEXT.scan(alarm);
+                    }
+
+                } else {
+
+                    if (Tick.DYNAMIC_BASE_TEXT.getState() == Tick.DynamicBaseText.SHOW_ALARM_NOTIF) {
+                        Tick.DYNAMIC_BASE_TEXT.shutdownAlarmState();
+                    }
+
+                }
+            }
+
         });
 
     }

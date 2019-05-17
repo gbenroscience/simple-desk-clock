@@ -10,3 +10,8 @@ The clock also saves its state(based on changes you make from the settings inter
 With little effort, any efficient developer can deploy the clock as an Android utility also.
 
 Keep coding, keep improving.
+
+
+#New Add-Ons
+
+Added alarms and notification bubbles with sounds.

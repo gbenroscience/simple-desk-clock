@@ -22,6 +22,7 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import parsing.StringOperations;
+import static util.Tick.alarmTextFont;
 
 /**
  * Used to display temporary information
@@ -110,7 +111,7 @@ public class Bubble implements Sprite {
         Graphics2D g = image.createGraphics();
         g.setColor(Color.white);
 
-        Font f = Tick.bottomTextFont;
+        Font f = Tick.alarmTextFont;
 
         g.setFont(f);
 
@@ -264,7 +265,7 @@ public class Bubble implements Sprite {
  
  
             g.setColor(Color.black);
-            g.setFont(Tick.bottomTextFont);
+            g.setFont(Tick.alarmTextFont);
 
             
             

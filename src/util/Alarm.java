@@ -142,7 +142,7 @@ public class Alarm implements Serializable {
     }
     
     public void initBubble(Clock c){
-        this.notificationBubble = new Bubble( description,  new Point( c.getCenter() )  , 5, 5);
+        this.notificationBubble = new Bubble( "Alarm at: "+getFriendlyTime()+".\n"+description,  new Point( c.getCenter() )  , 5, 5);
     }
 
     

@@ -159,6 +159,7 @@ public class Tick implements Serializable {
     }
 
     static transient Font topTextFont;
+    static transient Font alarmTextFont;
     static transient Font bottomTextFont;
     static transient Font tickTextFont;
     static transient BasicStroke stroke;
@@ -173,6 +174,8 @@ public class Tick implements Serializable {
     public void draw(Graphics g, Clock clock) {
 
         int fontSz = clock.getTextFontSize();
+        
+        int alarmFontSz = (int) (0.85*fontSz);
 
         if (tickTextFont == null) {
             tickTextFont = new Font("Gothic", Font.BOLD + Font.ITALIC, fontSz);
@@ -184,11 +187,15 @@ public class Tick implements Serializable {
         if (bottomTextFont == null) {
             bottomTextFont = new Font("Papyrus", Font.PLAIN, fontSz);
         }
+         if (alarmTextFont == null) {
+            alarmTextFont = new Font("Times New Roman", Font.PLAIN, alarmFontSz );
+        }
 
         if (cacheFontSize != fontSz) {
             tickTextFont = new Font("Gothic", Font.BOLD + Font.ITALIC, fontSz);
             topTextFont = new Font("Times New Roman", Font.BOLD, fontSz);
             bottomTextFont = new Font("Papyrus", Font.PLAIN, fontSz);
+            alarmTextFont = new Font("Times New Roman", Font.PLAIN, alarmFontSz);
             cacheFontSize = fontSz;
         }
 

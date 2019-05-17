@@ -33,8 +33,6 @@ public class Bubble implements Sprite {
     private transient BufferedImage image;
 
     private Point location;
-    private int paddingX;
-    private int paddingY;
 
     private int width;
     private int height;
@@ -68,17 +66,18 @@ public class Bubble implements Sprite {
 
     private int direction = MOVE_RIGHT;
 
+    static final int MOVE_NONE = -1;
+    static final int MOVE_AWAY = -2;
+
     static final int MOVE_LEFT = 0;
     static final int MOVE_RIGHT = 1;
     static final int MOVE_UP = 2;
     static final int MOVE_DOWN = 3;
-    static final int MOVE_NONE = 4;
 
-    static final int MOVE_UP_HOR_LEFT = 5;
-    static final int MOVE_UP_HOR_RIGHT = 6;
-    static final int MOVE_DOWN_HOR_LEFT = 7;
-    static final int MOVE_DOWN_HOR_RIGHT = 8;
-    static final int MOVE_AWAY = 9;
+    static final int MOVE_UP_HOR_LEFT = 4;
+    static final int MOVE_UP_HOR_RIGHT = 5;
+    static final int MOVE_DOWN_HOR_LEFT = 6;
+    static final int MOVE_DOWN_HOR_RIGHT = 7;
 
     /**
      * @param notification The notification to show.
@@ -101,54 +100,69 @@ public class Bubble implements Sprite {
      * Important method!!! Any change in clock dimensions must trigger this
      * method on any existing {@link Bubble}
      */
-    private final void setup() {
+    private void setup() {
 
-        this.image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB);
+        this.image = new BufferedImage(this.width=200, 1, BufferedImage.TYPE_INT_ARGB);
 
+        metrics = new BubbleMetrics();
+        
+         
         Graphics2D g = image.createGraphics();
-
-        ArrayList<String> lines = StringOperations.getLinesByMaxCharsAlgorithm(notification, 30);
-
         g.setColor(Color.white);
 
         Font f = Tick.bottomTextFont;
 
         g.setFont(f);
+
+        ArrayList<LineAndWidth> lines = StringOperations.getLinesByMaxWidthAlgorithm(notification, this.width, f);
+
         int maxWidth = 0;
         int indexOfMaxWidth = 0;
         int numOfLines = lines.size();
 
         FontMetrics fm = g.getFontMetrics(f);
 
-        for (int i = 0; i < numOfLines; i++) {
-            int newWidth = fm.stringWidth(lines.get(i));
+        for (LineAndWidth l : lines) {
+            int newWidth = l.getWidth();
             if (newWidth > maxWidth) {
-                maxWidth = newWidth;
-                indexOfMaxWidth = i;
+                maxWidth = newWidth; 
             }
         }
 
-        int w = maxWidth + 2 * fm.stringWidth("@@");
-        int verticalWordSpacing = 5;
+        int verticalWordSpacing = 4;
         int textHeight = fm.getHeight();
+        int w = maxWidth + 2*verticalWordSpacing;
         int h = numOfLines * textHeight + (numOfLines + 1) * verticalWordSpacing;
+        
+        
+        /**
+         * Now w and h are the widths and heights for the maximum inscribed 
+         * rectangles in the bubble's ellipse.
+         * 
+         * To get the size of the ellipse itself, since w = a.sqrt(2),(where w = length of the rectangle and a is the half length of its major axis)
+         * then the full width of the ellipse of the bubble...(i.e twice its major half length) is 2*a = 2.w/sqrt(2) = w.sqrt(2)
+         * 
+         * Also, since h = b.sqrt(2),(where h = breadth of the rectangle and b is the half length of its minor axis)
+         * then the full height of the ellipse of the bubble...(i.e twice its minor half length) is is 2*b = 2.h/sqrt(2) = h.sqrt(2)
+         * 
+         * We will apply some padding between the text and the bubble though and we will make it equal to the vertical word spacing
+         */
+        
+        
 
-        this.width = w + 30;
-        this.height = h + 50;
-
-        int dw = this.width - w;
-        int dh = this.height - h;
-
-        this.paddingX = dw;
-        this.paddingY = dh;
-
+        this.width = (int) ( (w+2*verticalWordSpacing)*Math.sqrt(2));
+        this.height = (int) ((h+2*verticalWordSpacing)*Math.sqrt(2));
+ 
+        
         this.image = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_ARGB);
-
-        metrics = new BubbleMetrics();
-
+  
         metrics.lines = lines;
         metrics.textHeight = textHeight;
         metrics.verticalWordSpacing = verticalWordSpacing;
+        
+        metrics.textBoxRect = getBiggestInscribedRect();
+        
+        
 
     }
 
@@ -218,39 +232,7 @@ public class Bubble implements Sprite {
         return cs.scan().size();
     }
 
-    /**
-     *
-     * @return the notification divided into lines. A line should have a maximum
-     * of 10 words or 30 characters.
-     */
-    public ArrayList<String> getLines() {
-        ArrayList<String> lines = new ArrayList<String>();
-
-        CustomScanner cs = new CustomScanner(notification, true, " ", "\n");
-        java.util.List<String> list = cs.scan();
-        int sz = list.size();
-
-        for (int i = 0; i < sz; i++) {
-            String line = "";
-
-            while (line.length() <= 30 && i < sz) {
-                if (list.get(i).equals("\n")) {
-                    break;
-                }
-                line = line.concat(list.get(i));
-                if (line.length() > 30) {
-
-                } else {
-                    ++i;
-                }
-            }
-            lines.add(line);
-
-        }//end for loop
-
-        return lines;
-
-    }//end method
+   
 
     public void setPropertyChanged(boolean propertyChanged) {
         this.propertyChanged = propertyChanged;
@@ -276,23 +258,32 @@ public class Bubble implements Sprite {
             RenderingHints hints = new RenderingHints(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
             g.setRenderingHints(hints);
-
-            int dw = this.width - this.paddingX;
-            int dh = this.height - this.paddingY;
+ 
 
             g.fillOval(0, 0, this.width, this.height);
-
-            int x = (int) (0.9 * dw);
-            int y = (int) (0.33333333 * dh);
-
-            FontMetrics fm = g.getFontMetrics(Tick.bottomTextFont);
-
+ 
+ 
             g.setColor(Color.black);
-            for (int i = 0; i < metrics.lines.size(); i++) {
-                int xLoc = (this.width - fm.stringWidth(metrics.lines.get(i))) / 2;
-                g.drawString(metrics.lines.get(i), xLoc, y += (metrics.verticalWordSpacing + metrics.textHeight));
+            g.setFont(Tick.bottomTextFont);
+
+            
+            
+            Rectangle r = metrics.textBoxRect;
+            
+            int left = (this.width - r.width)/2 + metrics.verticalWordSpacing;
+            int topY = (this.height -  r.height)/2 + metrics.verticalWordSpacing + 3*metrics.textHeight/4;
+            
+    
+             
+            for (int i = 0; i < metrics.lines.size(); i++) { 
+                g.drawString(metrics.lines.get(i).getLine(), left, topY + i*(metrics.verticalWordSpacing + metrics.textHeight));
             }
+            
+             
+            
             move(c);
+            
+            
 
             gg.drawImage(image, null, this.location.x, this.location.y);
 
@@ -301,12 +292,22 @@ public class Bubble implements Sprite {
     }
 
     static class BubbleMetrics {
+        
+        
 
-        private List<String> lines = new ArrayList<>();
-        private int textHeight;
-        private int verticalWordSpacing;
-
+        private List<LineAndWidth> lines = new ArrayList<>(); 
+        /**
+         * The box into which the text is inscribed.
+         */
+        private Rectangle textBoxRect;
+        private int textHeight; 
+        private int verticalWordSpacing; 
     }
+    
+    
+    
+    
+    
 
     public void setVisible(boolean visible) {
         this.visible = visible;
@@ -326,7 +327,16 @@ public class Bubble implements Sprite {
         return location.y + height;
 
     }
+    
+    
 
+    
+     public Rectangle getBiggestInscribedRect() {
+         EllipseModel model = new EllipseModel(width/2, height/2, this.width/2, this.height/2);
+        return model.getBiggestRectangle();
+    }
+
+    
     public Rectangle getBoundingRect() {
         return new Rectangle(location.x, location.y, width, height);
     }
@@ -345,27 +355,24 @@ public class Bubble implements Sprite {
 
     public void move(Clock c) {
         if (visible) {
- 
+
             int xSpeed = horSpeed + Tick.choiceMaker.nextInt(horSpeed);
-            
+
             int ySpeed = verSpeed + Tick.choiceMaker.nextInt(verSpeed);
 
             double dx = c.getLocation().x - location.x;
             double dy = c.getLocation().y - location.y;
 
             double dist = Math.sqrt(dx * dx + dy * dy);
-            
-            
-            System.out.println("[horSpeed , verSpeed , direction] = [" + horSpeed+" , "+verSpeed+" , "+direction+ "]");
+
+            System.out.println("[horSpeed , verSpeed , direction] = [" + horSpeed + " , " + verSpeed + " , " + direction + "]");
 
             if (moveInBox) {
-
-                System.out.println("bubble loc-->: " + location.toString()); 
 
                 switch (direction) {
 
                     case MOVE_AWAY:
-                        
+
                         if (this.location.x > 0) {
                             location.x -= 2 * xSpeed;
                             if (c.getLocation().x > location.x && dist > 2 * this.width) {

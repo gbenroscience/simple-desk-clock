@@ -17,6 +17,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
  
 import parsing.CustomScanner;
+import util.LineAndWidth;
  
 
 /**
@@ -73,8 +74,8 @@ public class StringOperations {
  * The splitting algorithm ensures 
  * @return the text divided into lines.
  */
-    public static ArrayList<String> getLinesByMaxWidthAlgorithm(String text,int lineWidth,Font f){
-     ArrayList<String> lines = new ArrayList<String>();
+    public static ArrayList<LineAndWidth> getLinesByMaxWidthAlgorithm(String text,int lineWidth,Font f){
+     ArrayList<LineAndWidth> lines = new ArrayList();
      
         BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
         
@@ -104,7 +105,7 @@ public class StringOperations {
            }
            
        }//end while
-       lines.add(line);
+       lines.add(new LineAndWidth(line, wid));
        
          
          

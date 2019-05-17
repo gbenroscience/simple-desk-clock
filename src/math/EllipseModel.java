@@ -15,6 +15,7 @@ package math;
  */
  
 import java.awt.Graphics;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import static java.lang.Math.*;
@@ -44,7 +45,8 @@ public class EllipseModel extends DrawAdapter{
   *
   * The equation of an ellipse is ((x-h)/a)^2+((y-k)/b)^2=1
   *
-  * Here a= width, b=height, and h,k go by the same name
+  * Here a = half of the length of the major axis, b = half the length of the minor axis,
+  * and h,k are the central coordinates of the ellipse
   *
   *
   * @param xCenter the x coordinate of the center of the EllipseModel object
@@ -60,7 +62,10 @@ public class EllipseModel extends DrawAdapter{
  /**
   *
   * The equation of an ellipse is ((x-h)/a)^2+((y-k)/b)^2=1
-  * Here a= width, b=height, and h,k go by the same name
+  *
+  * Here a = half of the length of the major axis, b = half the length of the minor axis,
+  * and h,k are the central coordinates of the ellipse
+  *
   *
   * Creates a new EllipseModel object centered about Point pt
   * @param center the Point object to assign to this EllipseModel object.
@@ -80,6 +85,29 @@ public class EllipseModel extends DrawAdapter{
     public EllipseModel(EllipseModel model) {
         this.center=model.center;
         this.size = model.getSize();
+    }
+    
+    
+    /**
+     * The largest rectangle that can be inscribed in an ellipse
+     * is a rectangle of area 2.a.b where 'a' is the half-length of the major axis and
+     * 'b' is the half-length of the minor axis.
+     * @return the biggest rectangle that can be inscribed in the ellipse
+     */
+    public Rectangle getBiggestRectangle(){
+        
+        
+        Rectangle r = new Rectangle();
+        
+        r.x = (int) (this.center.x - 0.5*this.size.width*sqrt(2));
+        r.y = (int) (this.center.y - 0.5*this.size.height*sqrt(2));
+        
+        r.width = (int) (this.size.width*sqrt(2));
+        r.height = (int) (this.size.height*sqrt(2));
+        
+        
+        return r;
+        
     }
 
 

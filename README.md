@@ -12,6 +12,6 @@ With little effort, any efficient developer can deploy the clock as an Android u
 Keep coding, keep improving.
 
 
-#New Add-Ons
+# New Add-Ons
 
 Added alarms and notification bubbles with sounds.
